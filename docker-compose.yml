@@ -1,0 +1,24 @@
+# docker-compose.yml
+# ─────────────────────────────────────────────────────────────
+# For local development and production deployment.
+#
+# Local dev:   docker compose up
+#              then visit http://localhost:8080?figure=jesus
+#
+# Production:  Sit this behind your existing reverse proxy
+#              (Traefik, nginx proxy manager, etc.) which
+#              handles SSL and subdomain routing.
+
+services:
+  answersinai:
+    build: .
+    container_name: answersinai
+    restart: unless-stopped
+    ports:
+      - "8080:80"       # change left side for prod (e.g. 80:80)
+    labels:
+      # ── Traefik labels (delete if you use a different proxy) ──
+      - "traefik.enable=true"
+      - "traefik.http.routers.answersinai.rule=HostRegexp(`{subdomain:[a-z]+}.answersinai.com`)"
+      - "traefik.http.routers.answersinai.entrypoints=websecure"
+      - "traefik.http.routers.answersinai.tls.certresolver=letsencrypt"

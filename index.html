@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Answers in AI</title>
+<link href="https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&family=Cinzel:wght@400;600;900&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --parchment: #f2e8d5;
+    --parchment-dark: #e8d9bc;
+    --ink: #1a1208;
+    --ink-fade: #3d2e14;
+    --sepia: #7a5c2e;
+    --sepia-light: #b8975a;
+    --charcoal: #2c2418;
+    --glow: #d4a843;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background-color: var(--parchment);
+    color: var(--ink);
+    font-family: 'Crimson Text', serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Parchment texture overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='400' height='400' filter='url(%23noise)' opacity='0.06'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 1000;
+    opacity: 0.5;
+  }
+
+  /* Vignette */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(ellipse at center, transparent 40%, rgba(26,18,8,0.35) 100%);
+    pointer-events: none;
+    z-index: 999;
+  }
+
+  .page {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    padding: 2rem;
+  }
+
+  /* ── HEADER ── */
+  .site-header {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    text-align: center;
+    padding: 1rem;
+    z-index: 100;
+    background: linear-gradient(to bottom, rgba(242,232,213,0.95) 70%, transparent);
+  }
+  .site-title {
+    font-family: 'Cinzel', serif;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.3em;
+    color: var(--sepia);
+    text-transform: uppercase;
+  }
+
+  /* ── ADJACENT FIGURES ── */
+  .adjacent-figures {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 10;
+  }
+  .adj-figure {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.4rem;
+    cursor: pointer;
+    pointer-events: all;
+    transition: transform 0.3s ease, opacity 0.3s ease;
+    opacity: 0.55;
+    text-decoration: none;
+    color: var(--ink-fade);
+  }
+  .adj-figure:hover { opacity: 1; transform: scale(1.08); }
+
+  .adj-figure.top-left    { top: 8%;  left: 4%; }
+  .adj-figure.top-right   { top: 8%;  right: 4%; }
+  .adj-figure.bottom-left { bottom: 8%; left: 4%; }
+  .adj-figure.bottom-right{ bottom: 8%; right: 4%; }
+
+  .adj-sketch { width: 90px; height: 110px; transition: filter 0.3s ease; }
+  .adj-name {
+    font-family: 'Cinzel', serif;
+    font-size: 0.6rem;
+    letter-spacing: 0.15em;
+    text-align: center;
+    color: var(--sepia);
+  }
+
+  /* ── MAIN CENTER ── */
+  .main-center {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+    max-width: 600px;
+    width: 100%;
+    position: relative;
+    z-index: 50;
+    animation: fadeInUp 1s ease both;
+  }
+
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .main-sketch-wrap {
+    position: relative;
+    width: 220px;
+    height: 270px;
+  }
+  .main-sketch {
+    width: 100%;
+    height: 100%;
+    filter: drop-shadow(0 8px 24px rgba(26,18,8,0.2));
+  }
+  .main-sketch-wrap::before {
+    content: '';
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 240px; height: 240px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(212,168,67,0.08) 0%, transparent 70%);
+    border: 1px solid rgba(122,92,46,0.15);
+  }
+
+  .figure-name {
+    font-family: 'Cinzel', serif;
+    font-size: 2rem;
+    font-weight: 900;
+    letter-spacing: 0.1em;
+    color: var(--charcoal);
+    text-align: center;
+    line-height: 1;
+  }
+  .figure-epithet {
+    font-family: 'IM Fell English', serif;
+    font-style: italic;
+    font-size: 0.95rem;
+    color: var(--sepia);
+    text-align: center;
+    letter-spacing: 0.05em;
+  }
+
+  .ornament {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    width: 100%;
+    max-width: 380px;
+  }
+  .ornament-line {
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(to right, transparent, var(--sepia-light), transparent);
+  }
+  .ornament-diamond {
+    width: 6px; height: 6px;
+    background: var(--sepia-light);
+    transform: rotate(45deg);
+  }
+
+  /* ── SEARCH BOX ── */
+  .search-wrap { width: 100%; max-width: 480px; position: relative; }
+  .search-input {
+    width: 100%;
+    background: rgba(255,255,255,0.45);
+    border: 1.5px solid var(--sepia-light);
+    border-radius: 2px;
+    padding: 1rem 3.5rem 1rem 1.4rem;
+    font-family: 'Crimson Text', serif;
+    font-size: 1.05rem;
+    color: var(--ink);
+    outline: none;
+    transition: border-color 0.3s, background 0.3s, box-shadow 0.3s;
+    box-shadow: inset 0 1px 4px rgba(26,18,8,0.06), 0 2px 8px rgba(26,18,8,0.04);
+  }
+  .search-input::placeholder { color: var(--sepia-light); font-style: italic; }
+  .search-input:focus {
+    border-color: var(--sepia);
+    background: rgba(255,255,255,0.7);
+    box-shadow: inset 0 1px 4px rgba(26,18,8,0.08), 0 0 0 3px rgba(122,92,46,0.1);
+  }
+  .search-btn {
+    position: absolute;
+    right: 0.8rem; top: 50%; transform: translateY(-50%);
+    background: none; border: none; cursor: pointer;
+    color: var(--sepia); opacity: 0.7;
+    transition: opacity 0.2s, transform 0.2s;
+    padding: 0.2rem;
+  }
+  .search-btn:hover { opacity: 1; transform: translateY(-50%) scale(1.15); }
+
+  .suggestions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    justify-content: center;
+    max-width: 480px;
+  }
+  .suggestion-pill {
+    background: transparent;
+    border: 1px solid rgba(122,92,46,0.35);
+    border-radius: 2px;
+    padding: 0.3rem 0.75rem;
+    font-family: 'Crimson Text', serif;
+    font-size: 0.82rem;
+    font-style: italic;
+    color: var(--sepia);
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s, color 0.2s;
+  }
+  .suggestion-pill:hover {
+    background: rgba(122,92,46,0.1);
+    border-color: var(--sepia);
+    color: var(--ink);
+  }
+
+  /* ── ANSWER PANEL ── */
+  .answer-panel {
+    display: none;
+    width: 100%;
+    max-width: 580px;
+    background: rgba(255,255,255,0.38);
+    border: 1px solid var(--sepia-light);
+    border-radius: 2px;
+    padding: 1.8rem 2rem;
+    box-shadow: 0 4px 24px rgba(26,18,8,0.08);
+  }
+  .answer-panel.visible { display: block; animation: fadeInUp 0.5s ease both; }
+  .answer-label {
+    font-family: 'Cinzel', serif;
+    font-size: 0.6rem;
+    letter-spacing: 0.25em;
+    color: var(--sepia);
+    margin-bottom: 0.8rem;
+    text-transform: uppercase;
+  }
+  .answer-text {
+    font-family: 'IM Fell English', serif;
+    font-size: 1.15rem;
+    line-height: 1.75;
+    color: var(--ink);
+    min-height: 2rem;
+  }
+  .cursor-blink {
+    display: inline-block;
+    width: 2px; height: 1.1em;
+    background: var(--ink);
+    margin-left: 2px;
+    vertical-align: text-bottom;
+    animation: blink 0.7s step-end infinite;
+  }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+  .loading-dots { display: inline-flex; gap: 4px; align-items: center; }
+  .loading-dots span {
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: var(--sepia);
+    animation: dot-bounce 1.2s ease-in-out infinite;
+  }
+  .loading-dots span:nth-child(2) { animation-delay: 0.2s; }
+  .loading-dots span:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes dot-bounce { 0%,80%,100%{transform:scale(0.6);opacity:0.4} 40%{transform:scale(1);opacity:1} }
+
+  /* ── FIGURE SWITCHER ── */
+  .figure-selector {
+    position: fixed;
+    bottom: 1.5rem; left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 0.5rem;
+    z-index: 200;
+  }
+  .fig-btn {
+    background: rgba(242,232,213,0.9);
+    border: 1px solid var(--sepia-light);
+    border-radius: 2px;
+    padding: 0.35rem 0.75rem;
+    font-family: 'Cinzel', serif;
+    font-size: 0.58rem;
+    letter-spacing: 0.12em;
+    color: var(--sepia);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .fig-btn:hover, .fig-btn.active {
+    background: var(--sepia);
+    color: var(--parchment);
+    border-color: var(--sepia);
+  }
+
+  @media (max-width: 700px) {
+    .adj-figure { display: none; }
+    .figure-name { font-size: 1.5rem; }
+    .main-sketch-wrap { width: 160px; height: 196px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="site-title">Answers in AI</div>
+</header>
+
+<div class="adjacent-figures" id="adjacentFigures"></div>
+
+<div class="page">
+  <div class="main-center">
+    <div class="main-sketch-wrap">
+      <svg class="main-sketch" id="mainSketch" viewBox="0 0 220 270" fill="none" xmlns="http://www.w3.org/2000/svg"></svg>
+    </div>
+    <div class="figure-name" id="figureName"></div>
+    <div class="figure-epithet" id="figureEpithet"></div>
+    <div class="ornament">
+      <div class="ornament-line"></div>
+      <div class="ornament-diamond"></div>
+      <div class="ornament-line"></div>
+    </div>
+    <div class="search-wrap">
+      <input class="search-input" id="questionInput" type="text" placeholder="Ask your question…" autocomplete="off" />
+      <button class="search-btn" id="askBtn" title="Ask">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
+        </svg>
+      </button>
+    </div>
+    <div class="suggestions" id="suggestions"></div>
+    <div class="answer-panel" id="answerPanel">
+      <div class="answer-label" id="answerLabel">speaks</div>
+      <div class="answer-text" id="answerText"></div>
+    </div>
+  </div>
+</div>
+
+<div class="figure-selector" id="figureSwitcher"></div>
+
+<!-- Figure & sketch data -->
+<script src="/figures/figures.js"></script>
+<script src="/figures/sketches.js"></script>
+
+<!-- App logic -->
+<script src="/app.js"></script>
+
+</body>
+</html>
