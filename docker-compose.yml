@@ -2,18 +2,23 @@
 # ─────────────────────────────────────────────────────────────
 # For local development and production deployment.
 #
-# Local dev:   docker compose up
+# Local dev:   ANTHROPIC_API_KEY=sk-... docker compose up
 #              then visit http://localhost:8080?figure=jesus
 #
 # Production:  Sit this behind your existing reverse proxy
 #              (Traefik, nginx proxy manager, etc.) which
 #              handles SSL and subdomain routing.
+#
+# The proxy service holds the Anthropic API key server-side.
+# nginx routes /api/ → proxy and / → static files.
 
 services:
   answersinai:
     build: .
     container_name: answersinai
     restart: unless-stopped
+    depends_on:
+      - proxy
     ports:
       - "8080:80"       # change left side for prod (e.g. 80:80)
     labels:
@@ -22,3 +27,12 @@ services:
       - "traefik.http.routers.answersinai.rule=HostRegexp(`{subdomain:[a-z]+}.answersinai.com`)"
       - "traefik.http.routers.answersinai.entrypoints=websecure"
       - "traefik.http.routers.answersinai.tls.certresolver=letsencrypt"
+
+  proxy:
+    build: ./proxy
+    container_name: answersinai-proxy
+    restart: unless-stopped
+    environment:
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+    expose:
+      - "8000"          # internal only — not exposed to host
